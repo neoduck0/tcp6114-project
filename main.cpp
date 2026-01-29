@@ -1,5 +1,13 @@
+#include <cstdlib>
 #include <iostream>
 #include <ctime>
+#include <limits>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 using namespace std;
 
@@ -107,6 +115,7 @@ class Log {
 
 class Book {
     private:
+        int id;
         string title;
         string author;
         Date release_date;
@@ -127,13 +136,53 @@ class DataBase {
         void write_db();
 };
 
-void ui_logo();
+bool h_clean_buf();
 void ui_home();
+void uih_clear();
+void uih_logo();
 
 int main() {
+    while (true) {ui_home();}
 }
 
-void ui_logo() {
+void ui_home() {
+    int option;
+
+    uih_clear();
+    uih_logo();
+
+    cout <<
+"      (1) search book" << endl <<
+"" << endl <<
+"      (2) view sessions" << endl <<
+"      (3) view quotes" << endl <<
+"" << endl <<
+"      (4) exit" << endl;
+
+
+    cout << endl <<
+    "option: ";
+    cin >> option;
+
+    if (h_clean_buf()) {
+        option = -1;
+    }
+
+    switch (option) {
+        case 1:
+            exit(200);
+        case 2:
+            exit(200);
+        case 3:
+            exit(200);
+        case 4:
+            exit(0);
+        default:
+            return;
+    }
+}
+
+void uih_logo() {
     cout <<
     "+============================+" << endl <<
     "|       ______ ______        |" << endl <<
@@ -146,15 +195,22 @@ void ui_logo() {
     "+============================+" << endl;
 }
 
-void ui_home() {
-    cout <<
-"      (1) log session" << endl <<
-"      (2) create quotes" << endl <<
-"" << endl <<
-"      (3) search book" << endl <<
-"      (4) add book" << endl <<
-"      (5) remove book" << endl <<
-"      (6) modify book" << endl <<
-"" << endl <<
-"      (7) import database" << endl;
+void uih_clear() {
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
+bool h_clean_buf() {
+    bool return_value = false;
+
+    if (cin.fail()) {
+        cin.clear();
+        return_value = true;
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    return return_value;
 }
