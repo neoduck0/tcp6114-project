@@ -161,7 +161,7 @@ void ui_home() {
 
 
     cout << endl <<
-    "option: ";
+    "option> ";
     cin >> option;
 
     if (h_clean_buf()) {
