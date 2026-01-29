@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ctime>
 #include <limits>
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -10,10 +11,6 @@
 #endif
 
 using namespace std;
-
-const int MAX_BOOKS = 100;
-const int MAX_QUOTES = 100;
-const int MAX_LOGS = 100;
 
 class Date {
     private:
@@ -119,8 +116,8 @@ class Book {
         string title;
         string author;
         Date release_date;
-        Quote quotes[MAX_QUOTES];
-        Log logs[MAX_LOGS];
+        vector<Quote> quotes;
+        vector<Log> logs;
     public:
         string get_readable();
 };
@@ -130,14 +127,24 @@ class DataBase {
         string books_file;
         string quotes_file;
         string logs_file;
-        Book books[MAX_BOOKS];
+        vector<Book> books;
     public:
         void load_db();
         void write_db();
 };
 
 bool h_clean_buf();
+
 void ui_home();
+void ui_search_book();
+void ui_view_sessions();
+void ui_view_quotes();
+void ui_edit_book();
+void ui_add_session();
+void ui_delete_session();
+void ui_add_quote();
+void ui_delete_quote();
+
 void uih_clear();
 void uih_logo();
 
@@ -159,7 +166,6 @@ void ui_home() {
 "" << endl <<
 "      (4) exit" << endl;
 
-
     cout << endl <<
     "option> ";
     cin >> option;
@@ -170,17 +176,81 @@ void ui_home() {
 
     switch (option) {
         case 1:
-            exit(200);
+            ui_search_book();
         case 2:
-            exit(200);
+            ui_view_sessions();
         case 3:
-            exit(200);
+            ui_view_quotes();
         case 4:
             exit(0);
         default:
             return;
     }
 }
+void ui_search_book() {
+    string name;
+
+    uih_clear();
+    uih_logo();
+
+    cout << "book name> ";
+    getline(cin, name);
+
+    // TODO: finish
+}
+
+void ui_view_sessions() {
+    // replace with declarations
+
+    uih_clear();
+    uih_logo();
+
+    // get the list of books that have matching names
+    // list the index + 1 as the number and allow the user to press n to go next and press p for previous list
+    // if a number is entered then select a book and go to the book page
+}
+
+void ui_view_quotes() {
+
+    uih_clear();
+    uih_logo();
+
+};
+
+void ui_edit_book() {
+
+    uih_clear();
+    uih_logo();
+
+};
+
+void ui_add_session() {
+
+    uih_clear();
+    uih_logo();
+
+};
+
+void ui_delete_session() {
+
+    uih_clear();
+    uih_logo();
+
+};
+
+void ui_add_quote() {
+
+    uih_clear();
+    uih_logo();
+
+};
+
+void ui_delete_quote() {
+
+    uih_clear();
+    uih_logo();
+
+};
 
 void uih_logo() {
     cout <<
