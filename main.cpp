@@ -253,12 +253,10 @@ void ui_home() {
             "(3) view sessions\n"
             "(4) view quotes\n"
             "\n"
-            "(5) exit\n";
+            "(5) exit\n\n";
 
-    cout << endl <<
-    "option> ";
+    cout << "option> ";
     cin >> option;
-
     if (h_clean_buf()) {
         option = -1;
     }
@@ -281,6 +279,7 @@ void ui_home() {
             return;
     }
 }
+
 void ui_search_book() {
     string book_title;
 
@@ -306,7 +305,7 @@ vector<Book> search_book(string book_title) {
             related_books.push_back(b);
         }
     }
-    
+
     return related_books;
 }
 
@@ -327,10 +326,13 @@ void ui_view_books(vector<Book> bs) {
         uih_header();
 
         uih_list(str_books, CONNECTOR, cur_set);
-
         cout << "\n\n(p) previous (n) next (q) quit\n\n";
+
         cout << "option> ";
         cin >> option;
+        if (h_clean_buf()) {
+            option = '/';
+        }
 
         switch (option) {
             case 'n':
@@ -352,7 +354,6 @@ void ui_view_books(vector<Book> bs) {
         }
     }
 }
-
 
 void ui_view_logs() {
 
@@ -435,7 +436,7 @@ void uih_clear() {
     #endif
 }
 
- void uih_list(vector<string>& items, string connect, int set) {
+void uih_list(vector<string>& items, string connect, int set) {
     int c = 5 * set;
     for (int i = c; i < c + 5; i++) {
         if (i < items.size() - 1) {
@@ -446,7 +447,7 @@ void uih_clear() {
                 << items.at(i);
         }
     }
- }
+}
 
 bool h_clean_buf() {
     bool return_value = false;
