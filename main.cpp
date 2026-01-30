@@ -1,3 +1,4 @@
+#include <cctype>
 #include <cstdlib>
 #include <iostream>
 #include <ctime>
@@ -196,18 +197,33 @@ class Book {
         vector<Log> get_logs() {
             return this->logs;
         };
+
+        string get_title() {
+            return this->title;
+        }
 };
 
 bool h_clean_buf();
 
 void ui_home();
+
 void ui_search_book();
+vector<Book> search_book(string book_title);
+
+void ui_view_books(vector<Book> books);
+
 void ui_view_logs();
+
 void ui_view_quotes();
+
 void ui_edit_book();
+
 void ui_add_logs();
+
 void ui_delete_logs();
+
 void ui_add_quote();
+
 void ui_delete_quote();
 
 void uih_clear();
@@ -267,16 +283,39 @@ void ui_home() {
     }
 }
 void ui_search_book() {
-    string name;
+    string book_title;
 
     uih_clear();
     uih_logo();
 
-    cout << "book name> ";
-    getline(cin, name);
+    cout << "book title> ";
+    getline(cin, book_title);
 
-    // TODO: implement
+    ui_view_books(search_book(book_title));
 }
+
+vector<Book> search_book(string book_title) {
+    for (char& c : book_title) { c = tolower(c); }
+
+    vector<Book> related_books;
+
+    for (int i = 0; i < books.size(); i++) {
+        string b = books.at(i).get_title();
+        for (char& c : b) { c = tolower(c); }
+
+        if (b.find(book_title) != string::npos) {
+            related_books.push_back(books.at(i));
+        }
+    }
+
+    return related_books;
+}
+
+void ui_view_books(vector<Book> books) {
+
+    // TODO:
+}
+
 
 void ui_view_logs() {
 
