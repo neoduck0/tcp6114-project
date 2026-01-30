@@ -97,7 +97,7 @@ class Date {
             }
         }
 
-        long get_long() {
+        long get_comparable() {
             return stol(this->year + this->month + this->day
                     + this->hour + this->minute + this->second);
         }
@@ -153,7 +153,7 @@ class Book {
 
         void sort_logs() {
             sort(logs.begin(), logs.end(), [](Log& a, Log& b) {
-                return a.time.get_long() < b.time.get_long();
+                return a.time.get_comparable() < b.time.get_comparable();
             });
         }
 
@@ -203,6 +203,10 @@ class Book {
         string get_title() {
             return this->title;
         }
+
+        string get_comparable() {
+            return this->title + this->author;
+        }
 };
 
 // FUNCTIONS
@@ -214,8 +218,8 @@ void ui_add_book();
 void ui_view_logs();
 void ui_view_quotes();
 void ui_edit_book();
-void ui_add_logs();
-void ui_delete_logs();
+void ui_add_log();
+void ui_delete_log();
 void ui_add_quote();
 void ui_delete_quote();
 
@@ -224,6 +228,7 @@ void uih_header();
 void uih_list(vector<string>& items, string connect, int set);
 
 vector<Book> search_book(string book_title);
+void delete_book(string book_comparable);
 void load_db();
 void write_db();
 
@@ -294,7 +299,8 @@ void ui_search_book() {
     cout << "book title> ";
     getline(cin, book_title);
 
-    ui_view_books(search_book(book_title));
+    vector<Book> filtered_books = search_book(book_title);
+    ui_view_books(filtered_books);
 }
 
 vector<Book> search_book(string input) {
@@ -375,20 +381,64 @@ void ui_view_books(vector<Book> filtered_books) {
             }
 
             ui_view_book(filtered_books.at(int_option - 1));
+            return;
         }
     }
 }
 
 void ui_view_book(Book book) {
-    char option;
+    int option;
 
     uih_clear();
     uih_header();
 
-    // TODO: output the options
     cout << book.get_str() << endl;
+
+    cout << "(1) edit book\n"
+            "(2) add session\n"
+            "(3) delete session\n"
+            "(4) add quote\n"
+            "(5) delete quote\n"
+            "(6) delete book\n"
+            "(7) exit\n\n";
+
+    cout << "option> ";
     cin >> option;
-    // TODO: complete
+    if (h_clean_buf()) { option = -1; }
+
+    switch (option) {
+        case 1:
+            ui_edit_book();
+            break;
+        case 2:
+            ui_add_log();
+            break;
+        case 3:
+            ui_delete_log();
+            break;
+        case 4:
+            ui_add_quote();
+            break;
+        case 5:
+            ui_delete_quote();
+            break;
+        case 6:
+            delete_book(book.get_comparable());
+            break;
+        case 7:
+            return;
+        default:
+            alert = "unavailable option";
+            return;
+    }
+}
+
+void delete_book(string book_comparable) {
+    for (int i = 0; i < books.size(); i++) {
+        if (books.at(i).get_comparable() == book_comparable) {
+            books.erase(books.begin() + i);
+        }
+    }
 }
 
 void ui_add_book() {
@@ -407,11 +457,11 @@ void ui_edit_book() {
     // TODO: implement
 };
 
-void ui_add_logs() {
+void ui_add_log() {
     // TODO: implement
 };
 
-void ui_delete_logs() {
+void ui_delete_log() {
     // TODO: implement
 };
 
