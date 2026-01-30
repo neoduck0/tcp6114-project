@@ -203,8 +203,36 @@ class Book {
             return this->title;
         }
 
-        string get_comparable() {
+        string get_author() {
+            return this->author;
+        }
+
+        string get_date() {
+            return this->release_date.get_str(false);
+        }
+
+        int get_pages() {
+            return this->pages;
+        }
+
+        string get_id() {
             return this->title + this->author;
+        }
+
+        void set_title(string title) {
+            this->title = title;
+        }
+
+        void set_author(string author) {
+            this->author = author;
+        }
+
+        void set_date(string date) {
+            this->release_date = Date(date);
+        }
+
+        void set_pages(int pages) {
+            this->pages = pages;
         }
 };
 
@@ -216,8 +244,8 @@ void ui_view_book(Book book);
 void ui_add_book();
 void ui_view_logs();
 void ui_view_quotes();
-void ui_edit_book();
-void ui_add_log();
+void ui_edit_book(string book_id);
+void ui_add_log(string book_id);
 void ui_delete_log();
 void ui_add_quote();
 void ui_delete_quote();
@@ -227,13 +255,13 @@ void uih_header();
 void uih_list(vector<string>& items, string connect, int set);
 
 vector<Book> search_book(string book_title);
-void delete_book(string book_comparable);
-void add_book(string title, string author, string release_date, int pages);
+void delete_book(string book_id);
 void load_db();
 void write_db();
 
 bool h_clean_buf();
 bool h_valid_date(string date);
+int h_find_book(string book_id);
 
 // GLOBAL CONSTANTS
 string const CONNECTOR = "\n|\n|\n";
@@ -409,10 +437,10 @@ void ui_view_book(Book book) {
 
     switch (option) {
         case 1:
-            ui_edit_book();
+            ui_edit_book(book.get_id());
             break;
         case 2:
-            ui_add_log();
+            ui_add_log(book.get_id());
             break;
         case 3:
             ui_delete_log();
@@ -424,7 +452,7 @@ void ui_view_book(Book book) {
             ui_delete_quote();
             break;
         case 6:
-            delete_book(book.get_comparable());
+            delete_book(book.get_id());
             break;
         case 7:
             return;
@@ -436,8 +464,10 @@ void ui_view_book(Book book) {
 
 void delete_book(string book_comparable) {
     for (int i = 0; i < books.size(); i++) {
-        if (books.at(i).get_comparable() == book_comparable) {
+        if (books.at(i).get_id() == book_comparable) {
             books.erase(books.begin() + i);
+            alert = "book deleted";
+            return;
         }
     }
 }
@@ -464,27 +494,76 @@ void ui_add_book() {
         pages = -1;
     }
 
-    add_book(title, author, release_date, pages);
-}
-
-void add_book(string title, string author, string release_date, int pages) {
     if (!(title.length() > 0) || !(author.length() > 0) || !(pages > 0) || !h_valid_date(release_date)) {
-        alert = "bad input";
+        alert = "bad information input";
         return;
     }
 
-    for (Book book: books) {
-        if (book.get_comparable() == title + author) {
-            alert = "already existing book";
-            return;
-        }
+    if (h_find_book(title + author) > 0) {
+        alert = "already existing book";
+        return;
     }
+
     books.push_back(Book(title, author, release_date, pages));
     alert = "book created";
 }
 
-void ui_edit_book() {
-    // TODO: implement
+void ui_edit_book(string book_id) {
+    string title, author, release_date;
+    int pages = 0;
+
+    uih_clear();
+    uih_header();
+    
+    Book& book = books.at(h_find_book(book_id));
+
+    cout << "Press enter to skip.\nEnter 0 for pages to skip.\n\n";
+    cout << "title (" + book.get_title() + "): ";
+    getline(cin, title);
+
+    cout << "author (" + book.get_author() + "): ";
+    getline(cin, author);
+
+    cout << "release date (" + book.get_date() + "): ";
+    getline(cin, release_date);
+
+    cout << "pages (" + to_string(book.get_pages()) + "): ";
+    cin >> pages;
+    if (h_clean_buf()) {
+        pages = -1;
+    }
+    
+    if (title != book.get_title() || author != book.get_author()) {
+        if (h_find_book(title + author) != -1) {
+            alert = "book already exists";
+            return;
+        }
+    } 
+
+    // default to original values
+    if (title.length() == 0) {
+        title = book.get_title();
+    }
+    if (author.length() == 0) {
+        author = book.get_author();
+    }
+    if (release_date.length() == 0) {
+        release_date = book.get_date();
+    }
+    if (pages == 0) {
+        pages = book.get_pages();
+    }
+
+    if (!h_valid_date(release_date)) {
+        alert = "bad information input";
+        return;
+    }
+    
+    book.set_title(title);
+    book.set_author(author);
+    book.set_date(release_date);
+    book.set_pages(pages);
+    alert = "book edited";
 };
 
 void ui_view_logs() {
@@ -495,7 +574,7 @@ void ui_view_quotes() {
     // TODO: implement
 };
 
-void ui_add_log() {
+void ui_add_log(string book_id) {
     // TODO: implement
 };
 
@@ -630,6 +709,15 @@ bool h_valid_date(string date) {
     }
 
     return true;
+}
+
+int h_find_book(string book_id) {
+    for (int i = 0; i < books.size(); i++) {
+        if (book_id == books.at(i).get_id()) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void load_db() {
