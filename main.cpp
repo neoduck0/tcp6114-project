@@ -356,58 +356,30 @@ void ui_view_books(vector<Book> bs) {
 }
 
 void ui_view_logs() {
-
-    uih_clear();
-    uih_header();
-
     // TODO: implement
 }
 
 void ui_view_quotes() {
-
-    uih_clear();
-    uih_header();
-
     // TODO: implement
 };
 
 void ui_edit_book() {
-
-    uih_clear();
-    uih_header();
-
     // TODO: implement
 };
 
 void ui_add_logs() {
-
-    uih_clear();
-    uih_header();
-
     // TODO: implement
 };
 
 void ui_delete_logs() {
-
-    uih_clear();
-    uih_header();
-
     // TODO: implement
 };
 
 void ui_add_quote() {
-
-    uih_clear();
-    uih_header();
-
     // TODO: implement
 };
 
 void ui_delete_quote() {
-
-    uih_clear();
-    uih_header();
-
     // TODO: implement
 };
 
