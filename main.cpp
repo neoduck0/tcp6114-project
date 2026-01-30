@@ -144,8 +144,7 @@ class Log {
 
 class Book {
     private:
-        string title;
-        string author;
+        string title, author;
         Date release_date;
         int pages;
         vector<Quote> quotes;
@@ -212,7 +211,7 @@ class Book {
 // FUNCTIONS
 void ui_home();
 void ui_search_book();
-void ui_view_books(vector<Book> str_books);
+void ui_view_books(vector<Book> filtered_books);
 void ui_view_book(Book book);
 void ui_add_book();
 void ui_view_logs();
@@ -229,10 +228,12 @@ void uih_list(vector<string>& items, string connect, int set);
 
 vector<Book> search_book(string book_title);
 void delete_book(string book_comparable);
+void add_book(string title, string author, string release_date, int pages);
 void load_db();
 void write_db();
 
 bool h_clean_buf();
+bool h_valid_date(string date);
 
 // GLOBAL CONSTANTS
 string const CONNECTOR = "\n|\n|\n";
@@ -442,18 +443,55 @@ void delete_book(string book_comparable) {
 }
 
 void ui_add_book() {
-    // TODO: implement
+    string title, author, release_date;
+    int pages;
+
+    uih_clear();
+    uih_header();
+
+    cout << "title: ";
+    getline(cin, title);
+
+    cout << "author: ";
+    getline(cin, author);
+
+    cout << "release date (yyyy-mm-dd): ";
+    getline(cin, release_date);
+
+    cout << "pages: ";
+    cin >> pages;
+    if (h_clean_buf()) {
+        pages = -1;
+    }
+
+    add_book(title, author, release_date, pages);
 }
+
+void add_book(string title, string author, string release_date, int pages) {
+    if (!(title.length() > 0) || !(author.length() > 0) || !(pages > 0) || !h_valid_date(release_date)) {
+        alert = "bad input";
+        return;
+    }
+
+    for (Book book: books) {
+        if (book.get_comparable() == title + author) {
+            alert = "already existing book";
+            return;
+        }
+    }
+    books.push_back(Book(title, author, release_date, pages));
+    alert = "book created";
+}
+
+void ui_edit_book() {
+    // TODO: implement
+};
 
 void ui_view_logs() {
     // TODO: implement
 }
 
 void ui_view_quotes() {
-    // TODO: implement
-};
-
-void ui_edit_book() {
     // TODO: implement
 };
 
@@ -521,6 +559,77 @@ bool h_clean_buf() {
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     return return_value;
+}
+
+bool h_valid_date(string date) {
+    if (date.length() < 10) {
+        return false;
+    }
+    if (date[4] != '-' || date[7] != '-') {
+        return false;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        if (i == 4 || i == 7) {
+            continue;
+        }
+        if (!isdigit(date[i])) {
+            return false;
+        }
+    }
+
+    int year = stoi(date.substr(0, 4));
+    int month = stoi(date.substr(5, 2));
+    int day = stoi(date.substr(8, 2));
+
+    if (month < 1 || month > 12) {
+        return false;
+    }
+
+    int days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    bool is_leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+    if (is_leap) {
+        days_in_month[1] = 29;
+    }
+
+    if (day < 1 || day > days_in_month[month - 1]) {
+        return false;
+    }
+
+    if (date.length() > 10) {
+        if (date.length() != 19) {
+            return false;
+        }
+        if (date[10] != ' ' || date[13] != ':' || date[16] != ':') {
+            return false;
+        }
+
+        for (int i = 11; i < 19; i++) {
+            if (i == 13 || i == 16) {
+                continue;
+            }
+            if (!isdigit(date[i])) {
+                return false;
+            }
+        }
+
+        int hour = stoi(date.substr(11, 2));
+        int minute = stoi(date.substr(14, 2));
+        int second = stoi(date.substr(17, 2));
+
+        if (hour < 0 || hour > 23) {
+            return false;
+        }
+        if (minute < 0 || minute > 59) {
+            return false;
+        }
+        if (second < 0 || second > 59) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void load_db() {
