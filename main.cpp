@@ -2,7 +2,9 @@
 #include <iostream>
 #include <ctime>
 #include <limits>
+#include <string>
 #include <vector>
+#include <algorithm>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -78,7 +80,7 @@ class Date {
             }
         }
 
-        string get_readable(bool incl_time) {
+        string get_str(bool incl_time) {
             string str_date = this->year + "-"
                 + this->month + "-"
                 + this->day + " "
@@ -92,63 +94,136 @@ class Date {
                 return str_date.substr(0, 10);
             }
         }
+
+        long get_long() {
+            return stol(this->year + this->month + this->day
+                    + this->hour + this->minute + this->second);
+        }
 };
 
 class Quote {
     private:
         string content;
-        Date time;
+        int page;
     public:
-        string get_readable();
+        Quote(string content, int page) {
+            this->content = content;
+            this->page = page;
+        };
+        string get_str() {
+            return "(" + to_string(this->page) + ") " + this->content;
+        };
+        int get_page() {
+            return page;
+        }
 };
 
 class Log {
     private:
         int pages;
-        Date time;
     public:
-        string get_readable();
+        Date time;
+        Log(int pages) {
+            this->pages = pages;
+        };
+
+        Log(int pages, string time) {
+            this->pages = pages;
+            this->time = Date(time);
+        };
+        int get_pages() {
+            return this->pages;
+        }
+        string get_str() {
+            return + "[" + to_string(this->pages)
+                + "] (" + this->time.get_str(true) + ")";
+        };
 };
 
 class Book {
     private:
-        int id;
         string title;
         string author;
         Date release_date;
+        int pages;
         vector<Quote> quotes;
         vector<Log> logs;
-    public:
-        string get_readable();
-};
 
-class DataBase {
-    private:
-        string books_file;
-        string quotes_file;
-        string logs_file;
-        vector<Book> books;
+        void sort_logs() {
+            sort(logs.begin(), logs.end(), [](Log& a, Log& b) {
+                return a.time.get_long() < b.time.get_long();
+            });
+        }
+
+        void sort_quotes() {
+            sort(quotes.begin(), quotes.end(), [](Quote& a, Quote& b) {
+                return a.get_page() < b.get_page();
+            });
+        }
+
+        int get_pages_read() {
+            int s = 0;
+            for (int i = 0; i < this->logs.size(); i++) {
+                s += logs[i].get_pages();
+            }
+            return s;
+        }
     public:
-        void load_db();
-        void write_db();
+        Book(string title, string author, string release_date, int pages) {
+            this->title = title;
+            this->author = author;
+            this->release_date = Date(release_date);
+            this->pages = pages;
+        };
+
+        string get_line_str() {
+            return this->title + ", " + author ;
+        };
+
+        string get_str() {
+            return "Title: " + this->title + "\n"
+                + "Author: " + this->author + "\n"
+                + "Release Date: " + this->release_date.get_str(false)
+                + "Pages: " + to_string(this->pages)
+                + "Sessions: " + to_string(this->logs.size())
+                + "Quotes: " + to_string(this->quotes.size());
+        };
+
+        vector<Quote> get_quotes() {
+            return this->quotes;
+        };
+
+        vector<Log> get_logs() {
+            return this->logs;
+        };
 };
 
 bool h_clean_buf();
 
 void ui_home();
 void ui_search_book();
-void ui_view_sessions();
+void ui_view_logs();
 void ui_view_quotes();
 void ui_edit_book();
-void ui_add_session();
-void ui_delete_session();
+void ui_add_logs();
+void ui_delete_logs();
 void ui_add_quote();
 void ui_delete_quote();
 
 void uih_clear();
 void uih_logo();
 
+void load_db();
+void write_db();
+
+vector<Book> books;
+
+string book_file = "books.txt";
+string log_file = "logs.txt";
+string quote_file = "quotes.txt";
+
 int main() {
+    load_db();
     while (true) {ui_home();}
 }
 
@@ -177,12 +252,16 @@ void ui_home() {
     switch (option) {
         case 1:
             ui_search_book();
+            break;
         case 2:
-            ui_view_sessions();
+            ui_view_logs();
+            break;
         case 3:
             ui_view_quotes();
+            break;
         case 4:
             exit(0);
+            break;
         default:
             return;
     }
@@ -196,18 +275,15 @@ void ui_search_book() {
     cout << "book name> ";
     getline(cin, name);
 
-    // TODO: finish
+    // TODO: implement
 }
 
-void ui_view_sessions() {
-    // replace with declarations
+void ui_view_logs() {
 
     uih_clear();
     uih_logo();
 
-    // get the list of books that have matching names
-    // list the index + 1 as the number and allow the user to press n to go next and press p for previous list
-    // if a number is entered then select a book and go to the book page
+    // TODO: implement
 }
 
 void ui_view_quotes() {
@@ -215,6 +291,7 @@ void ui_view_quotes() {
     uih_clear();
     uih_logo();
 
+    // TODO: implement
 };
 
 void ui_edit_book() {
@@ -222,20 +299,23 @@ void ui_edit_book() {
     uih_clear();
     uih_logo();
 
+    // TODO: implement
 };
 
-void ui_add_session() {
+void ui_add_logs() {
 
     uih_clear();
     uih_logo();
 
+    // TODO: implement
 };
 
-void ui_delete_session() {
+void ui_delete_logs() {
 
     uih_clear();
     uih_logo();
 
+    // TODO: implement
 };
 
 void ui_add_quote() {
@@ -243,6 +323,7 @@ void ui_add_quote() {
     uih_clear();
     uih_logo();
 
+    // TODO: implement
 };
 
 void ui_delete_quote() {
@@ -250,6 +331,7 @@ void ui_delete_quote() {
     uih_clear();
     uih_logo();
 
+    // TODO: implement
 };
 
 void uih_logo() {
@@ -284,3 +366,11 @@ bool h_clean_buf() {
 
     return return_value;
 }
+
+void load_db() {
+    // TODO: implement
+};
+
+void write_db() {
+    // TODO: implement
+};
