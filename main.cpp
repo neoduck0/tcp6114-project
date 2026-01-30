@@ -187,6 +187,7 @@ class Book {
                 + "Author: " + this->author + "\n"
                 + "Release Date: " + this->release_date.get_str(false) + "\n"
                 + "Pages: " + to_string(this->pages) + "\n"
+                + "Completed: " + to_string(this->get_pages_read()) + "\n"
                 + "Sessions: " + to_string(this->logs.size()) + "\n"
                 + "Quotes: " + to_string(this->quotes.size()) + "\n";
         };
@@ -207,7 +208,9 @@ class Book {
 // FUNCTIONS
 void ui_home();
 void ui_search_book();
-void ui_view_books(vector<Book> books);
+void ui_view_books(vector<Book> str_books);
+void ui_view_book(Book book);
+void ui_add_book();
 void ui_view_logs();
 void ui_view_quotes();
 void ui_edit_book();
@@ -250,6 +253,7 @@ void ui_home() {
 
     cout << "(1) search book\n"
             "(2) add book\n"
+            "\n"
             "(3) view sessions\n"
             "(4) view quotes\n"
             "\n"
@@ -257,21 +261,22 @@ void ui_home() {
 
     cout << "option> ";
     cin >> option;
-    if (h_clean_buf()) {
-        option = -1;
-    }
+    if (h_clean_buf()) { option = -1; }
 
     switch (option) {
         case 1:
             ui_search_book();
             break;
         case 2:
-            ui_view_logs();
+            ui_add_book();
             break;
         case 3:
-            ui_view_quotes();
+            ui_view_logs();
             break;
         case 4:
+            ui_view_quotes();
+            break;
+        case 5:
             exit(0);
             break;
         default:
@@ -292,35 +297,37 @@ void ui_search_book() {
     ui_view_books(search_book(book_title));
 }
 
-vector<Book> search_book(string book_title) {
-    for (char& c : book_title) { c = tolower(c); }
+vector<Book> search_book(string input) {
+    for (char& c : input) { c = tolower(c); }
 
-    vector<Book> related_books;
+    vector<Book> filtered_books;
 
-    for (Book b : books) {
-        string bt = b.get_title();
-        for (char& c : bt) { c = tolower(c); }
+    for (Book book : books) {
+        string book_title = book.get_title();
+        for (char& c : book_title) { c = tolower(c); }
 
-        if (bt.find(book_title) != string::npos) {
-            related_books.push_back(b);
+        if (book_title.find(input) != string::npos) {
+            filtered_books.push_back(book);
         }
     }
 
-    return related_books;
+    return filtered_books;
 }
 
-void ui_view_books(vector<Book> bs) {
-    if (bs.size() == 0) {
+void ui_view_books(vector<Book> filtered_books) {
+    if (filtered_books.size() == 0) {
         alert = "no books found";
         return;
     }
 
-    char option;
+    string option;
     int cur_set = 0;
-    int max_sets = ceil((float) bs.size() / 5);
-    vector<string> str_books;
-    for (Book b: bs) {str_books.push_back(b.get_line_str());};
+    int max_sets = ceil((float) filtered_books.size() / 5);
 
+    vector<string> str_books;
+    for (Book book : filtered_books) {
+        str_books.push_back(book.get_line_str());
+    }
     while (true) {
         uih_clear();
         uih_header();
@@ -330,29 +337,62 @@ void ui_view_books(vector<Book> bs) {
 
         cout << "option> ";
         cin >> option;
-        if (h_clean_buf()) {
-            option = '/';
-        }
+        if (h_clean_buf()) { option = '/'; }
 
-        switch (option) {
-            case 'n':
-                if (cur_set < max_sets - 1) {
-                    cur_set++;
-                } else {
-                    alert = "no next page";
+        if (option == "n") {
+            if (cur_set < max_sets - 1) {
+                cur_set++;
+            } else {
+                alert = "no next page";
+            }
+        } else if (option == "p") {
+            if (cur_set > 0) {
+                cur_set--;
+            } else {
+                alert = "no previous page";
+            }
+        } else if (option == "q") {
+            return;
+        } else {
+            bool is_digits = true;
+            for (char c: option) {
+                if (!isdigit(c)) {
+                    is_digits = false;
+                    break;
                 }
-                break;
-            case 'p':
-                if (cur_set > 0) {
-                    cur_set--;
-                } else {
-                    alert = "no previous page";
-                }
-                break;
-            case 'q':
+            }
+
+            if (!is_digits) {
+                alert = "invalid option";
                 return;
+            }
+
+            int int_option = stoi(option);
+
+            if (!(int_option > 0) || !(int_option <= filtered_books.size())) {
+                alert = "invalid option";
+                return;
+            }
+
+            ui_view_book(filtered_books.at(int_option - 1));
         }
     }
+}
+
+void ui_view_book(Book book) {
+    char option;
+
+    uih_clear();
+    uih_header();
+
+    // TODO: output the options
+    cout << book.get_str() << endl;
+    cin >> option;
+    // TODO: complete
+}
+
+void ui_add_book() {
+    // TODO: implement
 }
 
 void ui_view_logs() {
@@ -411,7 +451,7 @@ void uih_clear() {
 void uih_list(vector<string>& items, string connect, int set) {
     int c = 5 * set;
     for (int i = c; i < c + 5; i++) {
-        if (i < items.size() - 1) {
+        if (i < items.size()) {
             if (!(i % 5 == 0)) {
                 cout << connect;
             };
