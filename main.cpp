@@ -29,7 +29,7 @@ class Date {
             if (current->tm_mon < 10) {
                 month = "0" + to_string(current->tm_mon + 1);
             } else {
-                month = to_string(current->tm_mon);
+                month = to_string(current->tm_mon + 1);
             }
 
             if (current->tm_mday < 10) {
