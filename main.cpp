@@ -350,10 +350,11 @@ void ui_home() {
             ui_view_quotes();
             break;
         case 5:
+            write_db();
             exit(0);
             break;
         default:
-            alert = "unavailable option";
+            alert = "invalid option";
             return;
     }
 }
@@ -498,7 +499,7 @@ void ui_view_book(Book &book) {
             case 7:
                 return;
             default:
-                alert = "unavailable option";
+                alert = "invalid option";
         }
     }
 }
@@ -536,12 +537,12 @@ void ui_add_book() {
     }
 
     if (!(title.length() > 0) || !(author.length() > 0) || !(pages > 0) || !h_valid_date(release_date)) {
-        alert = "ensure the data is valid";
+        alert = "invalid data";
         return;
     }
 
     if (h_find_book(title + author) > 0) {
-        alert = "already existing book";
+        alert = "book already exists";
         return;
     }
 
@@ -594,7 +595,7 @@ void ui_edit_book(Book& book) {
     }
 
     if (!h_valid_date(release_date)) {
-        alert = "the date is not valid";
+        alert = "invalid date";
         return;
     }
     
@@ -646,7 +647,7 @@ void ui_view_logs() {
             case 'q':
                 return;
             default:
-                alert = "unavailable option";
+                alert = "invalid option";
         }
     }
 }
@@ -713,7 +714,7 @@ void ui_view_quotes() {
             case 'q':
                 return;
             default:
-                alert = "unavailable option";
+                alert = "invalid option";
         }
     }
 };
@@ -749,22 +750,22 @@ void ui_add_log(Book& book) {
     cout << "pages: ";
     cin >> pages;
     if (h_clean_buf() || pages <= 0) {
-        alert = "ensure the page are positive";
+        alert = "invalid pages";
         return;
     }
 
-    cout << "(leave time empty for current time else yyyy-mm-dd hh:mm:ss)\n";
+    cout << "(leave time empty for current time)\n";
     cout << "time: ";
     getline(cin, time);
     if (time.length() == 0) {
         time = Date().get_str(true);
     } else if (!h_valid_date(time)) {
-        alert = "ensure the date is valid";
+        alert = "invalid date";
         return;
     }
     
     if (!book.add_log(Log(pages, time))) {
-        alert = "pages are greater than the pages left in the book";
+        alert = "invalid pages";
     };
 };
 
@@ -785,19 +786,19 @@ void ui_add_quote(Book& book) {
     cout << "page: ";
     cin >> page;
     if (h_clean_buf() || page <= 0 || page > total_pages) {
-        alert = "ensure the page is within range";
+        alert = "invalid page";
         return;
     }
 
     cout << "quote: ";
     getline(cin, content);
     if (content.length() == 0) {
-        alert = "quote cannot be empty";
+        alert = "invalid quote";
         return;
     }
 
     if (!book.add_quote(Quote(content, page))) {
-        alert = "page is out of range";
+        alert = "invalid page";
     };
 };
 
@@ -944,6 +945,9 @@ int h_find_book(string book_id) {
 
 void load_db() {
     // TODO: implement
+    // files exit ok
+    // files exit bad
+    // files do not exist
     books.push_back(Book("The Great Gatsby", "F. Scott Fitzgerald", "1925-04-10", 180));
     books.push_back(Book("To Kill a Mockingbird", "Harper Lee", "1960-07-11", 324));
     books.push_back(Book("1984", "George Orwell", "1949-06-08", 328));
