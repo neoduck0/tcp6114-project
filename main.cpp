@@ -1,5 +1,6 @@
 #include <cctype>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <cmath>
 #include <ctime>
@@ -123,6 +124,9 @@ class Quote {
         int get_page() {
             return this->page;
         }
+        string get_content() {
+            return this->content;
+        }
         int get_comparable() {
             return this->page;
         }
@@ -143,6 +147,9 @@ class Log {
         };
         int get_pages() {
             return this->pages;
+        }
+        string get_date() {
+            return this->time.get_str(true);
         }
         string get_str() {
             return *this->book_title + "\n" + to_string(this->pages)
@@ -1146,8 +1153,32 @@ bool load_db() {
     books.at(4).add_quote(Quote("The mark of the immature man is that he wants to die nobly for a cause, while the mark of the mature man is that he wants to live humbly for one.", 188));
     books.at(5).add_quote(Quote("All animals are equal, but some animals are more equal than others.", 112));
     books.at(6).add_quote(Quote("The thing is - fear can't hurt you any more than a dream.", 82));
+    return true;
 };
 
 void write_db() {
-    // TODO: implement
+    ofstream books_file(BOOK_FILE);
+    ofstream logs_file(LOG_FILE);
+    ofstream quotes_file(QUOTE_FILE);
+
+    for (Book& b : books) {
+        books_file << b.get_title() << endl;
+        books_file << b.get_author() << endl;
+        books_file << b.get_date() << endl;
+        books_file << b.get_pages() << endl;
+        for (Log& l : b.get_logs()) {
+            logs_file << b.get_id() << endl;
+            logs_file << l.get_pages() << endl;
+            logs_file << l.get_date() << endl;
+        }
+        for (Quote& q : b.get_quotes()) {
+            quotes_file << b.get_id() << endl;
+            quotes_file << q.get_page() << endl;
+            quotes_file << q.get_content() << endl;
+        }
+    }
+
+    books_file.close();
+    logs_file.close();
+    quotes_file.close();
 };
