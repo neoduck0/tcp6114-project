@@ -261,11 +261,11 @@ void ui_view_book(Book& book);
 void ui_add_book();
 void ui_view_logs();
 void ui_view_quotes();
-void ui_edit_book(string book_id);
+void ui_edit_book(Book& book);
 void ui_add_log(Book& book);
-void ui_delete_log(string book_id);
+void ui_delete_log(Book& book);
 void ui_add_quote(Book& book);
-void ui_delete_quote(string book_id);
+void ui_delete_quote(Book& book);
 
 void uih_clear();
 void uih_header();
@@ -456,19 +456,19 @@ void ui_view_book(Book &book) {
 
         switch (option) {
             case 1:
-                ui_edit_book(book.get_id());
+                ui_edit_book(book);
                 break;
             case 2:
                 ui_add_log(book);
                 break;
             case 3:
-                ui_delete_log(book.get_id());
+                ui_delete_log(book);
                 break;
             case 4:
                 ui_add_quote(book);
                 break;
             case 5:
-                ui_delete_quote(book.get_id());
+                ui_delete_quote(book);
                 break;
             case 6:
                 delete_book(book.get_id());
@@ -527,15 +527,13 @@ void ui_add_book() {
     alert = "book created";
 }
 
-void ui_edit_book(string book_id) {
+void ui_edit_book(Book& book) {
     string title, author, release_date;
     int pages = 0;
 
     uih_clear();
     uih_header();
     
-    Book& book = books.at(h_find_book(book_id));
-
     cout << "Press enter to skip.\nEnter 0 for pages to skip.\n\n";
     cout << "title (" + book.get_title() + "): ";
     getline(cin, title);
@@ -626,7 +624,7 @@ void ui_add_log(Book& book) {
     };
 };
 
-void ui_delete_log(string book_id) {
+void ui_delete_log(Book& book) {
     uih_clear();
     uih_header();
     // TODO: implement
@@ -659,7 +657,7 @@ void ui_add_quote(Book& book) {
     };
 };
 
-void ui_delete_quote(string book_id) {
+void ui_delete_quote(Book& book) {
     uih_clear();
     uih_header();
     // TODO: implement
