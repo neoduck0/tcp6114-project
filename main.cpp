@@ -303,7 +303,7 @@ vector<Book> search_book(string book_title);
 void delete_book(string book_id);
 vector<string> get_all_logs();
 vector<string> get_all_quotes();
-void load_db();
+bool load_db();
 void write_db();
 
 bool h_clean_buf();
@@ -322,7 +322,9 @@ vector<Book> books;
 string alert = "";
 
 int main() {
-    load_db();
+    if (!load_db()) {
+        cout << "files are corrupted, delete the existing files or fix them.\n";
+    }
     while (true) {ui_home();}
 }
 
@@ -1102,7 +1104,7 @@ int h_find_book(string book_id) {
     return -1;
 }
 
-void load_db() {
+bool load_db() {
     // TODO: implement
     // files exit ok
     // files exit bad
