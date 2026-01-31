@@ -997,7 +997,8 @@ void uih_header() {
             "+============================+\n";
 
     if (!alert.empty()) {
-        cout << alert + "\n\n";
+        cout << alert +
+            "\n+============================+\n";
         alert = "";
     }
 }
