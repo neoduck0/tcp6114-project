@@ -113,14 +113,14 @@ class Quote {
         Quote(string content, int page) {
             this->content = content;
             this->page = page;
-        };
+        }
         string get_str() {
             return *this->book_title +
                 " [page " + to_string(this->page) + "]\n" + this->content;
-        };
+        }
         string get_line_str() {
             return "[page " + to_string(this->page) + "] " + this->content;
-        };
+        }
         int get_page() {
             return this->page;
         }
@@ -144,7 +144,7 @@ class Log {
         Log(int pages, string time) {
             this->pages = pages;
             this->time = Date(time);
-        };
+        }
         int get_pages() {
             return this->pages;
         }
@@ -154,10 +154,10 @@ class Log {
         string get_str() {
             return *this->book_title + "\n" + to_string(this->pages)
                 + " pages [" + this->time.get_str(true) + "]";
-        };
+        }
         string get_line_str() {
             return to_string(this->pages) + " pages [" + this->time.get_str(true) + "]";
-        };
+        }
         int get_comparable() {
             return this->time.get_comparable();
         }
@@ -199,7 +199,7 @@ class Book {
             this->author = author;
             this->release_date = Date(release_date);
             this->pages = pages;
-        };
+        }
 
         bool add_log(Log log) {
             if (log.get_pages() + this->get_pages_read() > this->pages) {
@@ -223,7 +223,7 @@ class Book {
 
         string get_line_str() {
             return this->title + ", " + author ;
-        };
+        }
 
         string get_str() {
             return "Title: " + this->title + "\n"
@@ -233,15 +233,15 @@ class Book {
                 + "Completed: " + to_string(this->get_pages_read()) + "\n"
                 + "Sessions: " + to_string(this->logs.size()) + "\n"
                 + "Quotes: " + to_string(this->quotes.size()) + "\n";
-        };
+        }
 
         vector<Quote> get_quotes() {
             return this->quotes;
-        };
+        }
 
         vector<Log> get_logs() {
             return this->logs;
-        };
+        }
 
         string get_title() {
             return this->title;
@@ -316,6 +316,9 @@ void write_db();
 bool h_clean_buf();
 bool h_valid_date(string date);
 int h_find_book(string book_id);
+bool h_load_books();
+bool h_load_logs();
+bool h_load_quotes();
 
 // GLOBAL CONSTANTS
 int const MAX_LIST_ITEMS = 3;
@@ -331,6 +334,7 @@ string alert = "";
 int main() {
     if (!load_db()) {
         cout << "files are corrupted, delete the existing files or fix them.\n";
+        exit(1);
     }
     while (true) {ui_home();}
 }
@@ -485,14 +489,19 @@ void ui_view_book(Book &book) {
         uih_clear();
         uih_header();
 
-        cout << book.get_str() << endl;
+        cout << book.get_str() +
+        "+============================+\n";
 
         cout << "(1) edit book\n"
+                "\n"
                 "(2) add session\n"
                 "(3) delete session\n"
+                "\n"
                 "(4) add quote\n"
                 "(5) delete quote\n"
+                "\n"
                 "(6) delete book\n"
+                "\n"
                 "(7) exit\n\n";
 
         cout << "option> ";
@@ -626,7 +635,7 @@ void ui_edit_book(Book& book) {
     book.set_date(release_date);
     book.set_pages(pages);
     alert = "book edited";
-};
+}
 
 void ui_view_logs() {
     vector<string> str_logs = get_all_logs();
@@ -739,7 +748,7 @@ void ui_view_quotes() {
                 alert = "invalid option";
         }
     }
-};
+}
 
 vector<string> get_all_quotes() {
     vector<Quote> quotes;
@@ -788,8 +797,8 @@ void ui_add_log(Book& book) {
     
     if (!book.add_log(Log(pages, time))) {
         alert = "invalid pages";
-    };
-};
+    }
+}
 
 void ui_delete_log(Book& book) {
     uih_clear();
@@ -868,7 +877,7 @@ void ui_delete_log(Book& book) {
             return;
         }
     }
-};
+}
 
 void ui_add_quote(Book& book) {
     string content;
@@ -894,8 +903,8 @@ void ui_add_quote(Book& book) {
 
     if (!book.add_quote(Quote(content, page))) {
         alert = "invalid page";
-    };
-};
+    }
+}
 
 void ui_delete_quote(Book& book) {
     uih_clear();
@@ -974,7 +983,7 @@ void ui_delete_quote(Book& book) {
             return;
         }
     }
-};
+}
 
 void uih_header() {
     cout << "+============================+\n"
@@ -1007,7 +1016,7 @@ void uih_list(vector<string>& items, int set, bool numbered) {
         if (i < items.size()) {
             if (!(i % MAX_LIST_ITEMS == 0)) {
                 cout << CONNECTOR;
-            };
+            }
             if (numbered) {
                 cout << "(" << i + 1 << ") "
                     << items.at(i);
@@ -1112,49 +1121,161 @@ int h_find_book(string book_id) {
 }
 
 bool load_db() {
-    // TODO: implement
-    // files exit ok
-    // files exit bad
-    // files do not exist
-    books.push_back(Book("The Great Gatsby", "F. Scott Fitzgerald", "1925-04-10", 180));
-    books.push_back(Book("To Kill a Mockingbird", "Harper Lee", "1960-07-11", 324));
-    books.push_back(Book("1984", "George Orwell", "1949-06-08", 328));
-    books.push_back(Book("Pride and Prejudice", "Jane Austen", "1813-01-28", 432));
-    books.push_back(Book("The Catcher in the Rye", "J.D. Salinger", "1951-07-16", 234));
-    books.push_back(Book("Animal Farm", "George Orwell", "1945-08-17", 112));
-    books.push_back(Book("Lord of the Flies", "William Golding", "1954-09-17", 224));
-    books.push_back(Book("Brave New World", "Aldous Huxley", "1932-08-18", 311));
-    books.push_back(Book("The Hobbit", "J.R.R. Tolkien", "1937-09-21", 310));
-    books.push_back(Book("Fahrenheit 451", "Ray Bradbury", "1953-10-19", 194));
-    books.push_back(Book("Jane Eyre", "Charlotte Brontë", "1847-10-16", 507));
-    books.push_back(Book("Wuthering Heights", "Emily Brontë", "1847-12-01", 416));
-    books.push_back(Book("The Odyssey", "Homer", "750-01-01", 484));
-    books.push_back(Book("Crime and Punishment", "Fyodor Dostoevsky", "1866-01-01", 671));
-    books.push_back(Book("The Brothers Karamazov", "Fyodor Dostoevsky", "1880-11-01", 824));
-    books.push_back(Book("War and Peace", "Leo Tolstoy", "1869-01-01", 1225));
-    books.push_back(Book("Anna Karenina", "Leo Tolstoy", "1877-01-01", 864));
-
-    books.at(0).add_log(Log(20, Date().get_str(true)));
-    sleep(1);
-    books.at(1).add_log(Log(10, Date().get_str(true)));
-    sleep(1);
-    books.at(0).add_log(Log(5, Date().get_str(true)));
-    sleep(1);
-    books.at(2).add_log(Log(7, Date().get_str(true)));
-    sleep(1);
-    books.at(0).add_log(Log(3, Date().get_str(true)));
-    sleep(1);
-    books.at(0).add_log(Log(6, Date().get_str(true)));
-
-    books.at(0).add_quote(Quote("So we beat on, boats against the current, borne back ceaselessly into the past.", 180));
-    books.at(1).add_quote(Quote("You never really understand a person until you consider things from his point of view.", 39));
-    books.at(2).add_quote(Quote("War is peace. Freedom is slavery. Ignorance is strength.", 3));
-    books.at(3).add_quote(Quote("It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.", 1));
-    books.at(4).add_quote(Quote("The mark of the immature man is that he wants to die nobly for a cause, while the mark of the mature man is that he wants to live humbly for one.", 188));
-    books.at(5).add_quote(Quote("All animals are equal, but some animals are more equal than others.", 112));
-    books.at(6).add_quote(Quote("The thing is - fear can't hurt you any more than a dream.", 82));
+    if (!h_load_books() || !h_load_logs() || !h_load_quotes()) {
+        return false;
+    }
     return true;
-};
+}
+
+bool h_load_books() {
+    string title, author, date, str_pages;
+
+    ifstream b_check(BOOK_FILE);
+    if (!b_check.good()) {
+        ofstream b_create(BOOK_FILE);
+        if (!b_create.good()) {
+            return false;
+        }
+        b_create.close();
+    }
+    b_check.close();
+
+    ifstream books_file(BOOK_FILE);
+    if (!books_file.good()) {
+        return false;
+    }
+
+    while (getline(books_file, title)) {
+        if (title.empty()) {
+            continue;
+        }
+        
+        if (!getline(books_file, author) || author.empty() ||
+            !getline(books_file, date) || date.empty() ||
+            !getline(books_file, str_pages) || str_pages.empty()) {
+            return false;
+        }
+        
+        for (char c : str_pages) {
+            if (!isdigit(c)) {
+                return false;
+            }
+        }
+        
+        int pages = stoi(str_pages);
+        if (pages <= 0) {
+            return false;
+        }
+        
+        books.push_back(Book(title, author, date, pages));
+    }
+    books_file.close();
+    return true;
+}
+
+bool h_load_logs() {
+    ifstream l_check(LOG_FILE);
+    if (!l_check.good()) {
+        ofstream l_create(LOG_FILE);
+        if (!l_create.good()) {
+            return false;
+        }
+        l_create.close();
+    }
+    l_check.close();
+
+    ifstream logs_file(LOG_FILE);
+    if (!logs_file.good()) {
+        return false;
+    }
+    
+    string book_id, str_pages, date;
+    while (getline(logs_file, book_id)) {
+        if (book_id.empty()) {
+            continue;
+        }
+        
+        if (!getline(logs_file, str_pages) || str_pages.empty() ||
+            !getline(logs_file, date) || date.empty()) {
+            return false;
+        }
+        
+        for (char c : str_pages) {
+            if (!isdigit(c)) {
+                return false;
+            }
+        }
+        
+        int pages = stoi(str_pages);
+        if (pages <= 0) { 
+            return false;
+        }
+        
+        for (Book& current_book : books) {
+            if (current_book.get_id() == book_id) {
+                current_book.add_log(Log(pages, date));
+                break;
+            }
+        }
+    }
+    logs_file.close();
+    return true;
+}
+
+bool h_load_quotes() {
+    ifstream q_check(QUOTE_FILE);
+    if (!q_check.good()) {
+        ofstream q_create(QUOTE_FILE);
+        if (!q_create.good()) {
+            return false;
+        }
+        q_create.close();
+    }
+    q_check.close();
+
+    ifstream quotes_file(QUOTE_FILE);
+    if (!quotes_file.good()) {
+        return false;
+    }
+    
+    string quote_book_id, page_str, content_str;
+    while (getline(quotes_file, quote_book_id)) {
+        if (quote_book_id.empty()) {
+            continue;
+        }
+        
+        if (!getline(quotes_file, page_str) || page_str.empty() ||
+            !getline(quotes_file, content_str) || content_str.empty()) {
+            return false;
+        }
+        
+        bool page_is_digits = true;
+        for (char digit_char : page_str) {
+            if (!isdigit(digit_char)) {
+                page_is_digits = false;
+                break;
+            }
+        }
+        
+        if (!page_is_digits) {
+            return false;
+        }
+        
+        int quote_page = stoi(page_str);
+        if (quote_page <= 0) {
+            return false;
+        }
+        
+        for (Book& current_book : books) {
+            if (current_book.get_id() == quote_book_id) {
+                current_book.add_quote(Quote(content_str, quote_page));
+                break;
+            }
+        }
+    }
+    quotes_file.close();
+    return true;
+}
 
 void write_db() {
     ofstream books_file(BOOK_FILE);
@@ -1181,4 +1302,4 @@ void write_db() {
     books_file.close();
     logs_file.close();
     quotes_file.close();
-};
+}
