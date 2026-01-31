@@ -107,16 +107,24 @@ class Quote {
     private:
         string content;
         int page;
+        string* book_title; 
     public:
         Quote(string content, int page) {
             this->content = content;
             this->page = page;
         };
         string get_str() {
-            return "(" + to_string(this->page) + ") " + this->content;
+            return *this->book_title +
+                " [page " + to_string(this->page) + "]\n" + this->content;
         };
         int get_page() {
-            return page;
+            return this->page;
+        }
+        int get_comparable() {
+            return this->page;
+        }
+        void set_book_title(string* book_title) {
+            this->book_title = book_title;
         }
 };
 
@@ -124,6 +132,7 @@ class Log {
     private:
         int pages;
         Date time;
+        string* book_title;
     public:
         Log(int pages, string time) {
             this->pages = pages;
@@ -133,11 +142,14 @@ class Log {
             return this->pages;
         }
         string get_str() {
-            return + "" + to_string(this->pages)
+            return *this->book_title + "\n" + to_string(this->pages)
                 + " pages [" + this->time.get_str(true) + "]";
         };
         int get_comparable() {
             return this->time.get_comparable();
+        }
+        void set_book_title(string* book_title) {
+            this->book_title = book_title;
         }
 };
 
@@ -180,6 +192,7 @@ class Book {
             if (log.get_pages() + this->get_pages_read() > this->pages) {
                 return false;
             }
+            log.set_book_title(&this->title);
             logs.push_back(log);
             this->sort_logs();
             return true;
@@ -189,6 +202,7 @@ class Book {
             if (quote.get_page() <= 0 || quote.get_page() > this->pages) {
                 return false;
             }
+            quote.set_book_title(&this->title);
             quotes.push_back(quote);
             this->sort_quotes();
             return true;
@@ -274,6 +288,7 @@ void uih_list(vector<string>& items, int set, bool numbered);
 vector<Book> search_book(string book_title);
 void delete_book(string book_id);
 vector<string> get_all_logs();
+vector<string> get_all_quotes();
 void load_db();
 void write_db();
 
@@ -282,6 +297,7 @@ bool h_valid_date(string date);
 int h_find_book(string book_id);
 
 // GLOBAL CONSTANTS
+int const MAX_LIST_ITEMS = 3;
 string const CONNECTOR = "\n|\n|\n";
 string const BOOK_FILE = "books.txt";
 string const LOG_FILE = "logs.txt";
@@ -374,7 +390,7 @@ void ui_view_books(vector<Book> filtered_books) {
 
     string option;
     int cur_set = 0;
-    int max_sets = ceil((float) filtered_books.size() / 5);
+    int max_sets = ceil((float) filtered_books.size() / MAX_LIST_ITEMS);
     string book_id;
 
     vector<string> str_books;
@@ -591,7 +607,7 @@ void ui_view_logs() {
         return;
     }
 
-    int max_sets = ceil((float) str_logs.size() / 5);
+    int max_sets = ceil((float) str_logs.size() / MAX_LIST_ITEMS);
     int cur_set = 0;
     char option;
 
@@ -651,10 +667,71 @@ vector<string> get_all_logs() {
 }
 
 void ui_view_quotes() {
-    uih_clear();
-    uih_header();
-    // TODO: implement
+    vector<string> str_quotes = get_all_quotes();
+    
+    if (str_quotes.size() == 0) {
+        alert = "no quotes exist";
+        return;
+    }
+
+    int max_sets = ceil((float) str_quotes.size() / MAX_LIST_ITEMS);
+    int cur_set = 0;
+    char option;
+
+    while (true) {
+        uih_clear();
+        uih_header();
+
+        uih_list(str_quotes, cur_set, false);
+        cout << "\n\n(p) previous (n) next (q) quit\n\n";
+
+        cout << "option> ";
+        cin >> option;
+        if (h_clean_buf()) { option = '/'; }
+
+        switch (option) {
+            case 'n':
+                if (cur_set < max_sets - 1) {
+                    cur_set++;
+                } else {
+                    alert = "no next page";
+                }
+                break;
+            case 'p':
+                if (cur_set > 0) {
+                    cur_set--;
+                } else {
+                    alert = "no previous page";
+                }
+                break;
+            case 'q':
+                return;
+            default:
+                alert = "unavailable option";
+        }
+    }
 };
+
+vector<string> get_all_quotes() {
+    vector<Quote> quotes;
+    vector<string> str_quotes;
+
+    for (Book& b: books) {
+        for (Quote& q: b.get_quotes()) {
+            quotes.push_back(q);
+        }
+    }
+
+    sort(quotes.begin(), quotes.end(), [](Quote& a, Quote& b) {
+        return a.get_comparable() > b.get_comparable();
+    });
+
+    for (Quote& q: quotes) {
+        str_quotes.push_back(q.get_str());
+    }
+
+    return str_quotes;
+}
 
 void ui_add_log(Book& book) {
     int pages;
@@ -750,10 +827,10 @@ void uih_clear() {
 }
 
 void uih_list(vector<string>& items, int set, bool numbered) {
-    int c = 5 * set;
-    for (int i = c; i < c + 5; i++) {
+    int c = MAX_LIST_ITEMS * set;
+    for (int i = c; i < c + MAX_LIST_ITEMS; i++) {
         if (i < items.size()) {
-            if (!(i % 5 == 0)) {
+            if (!(i % MAX_LIST_ITEMS == 0)) {
                 cout << CONNECTOR;
             };
             if (numbered) {
@@ -890,6 +967,14 @@ void load_db() {
     books.at(0).add_log(Log(3, Date().get_str(true)));
     sleep(1);
     books.at(0).add_log(Log(6, Date().get_str(true)));
+
+    books.at(0).add_quote(Quote("So we beat on, boats against the current, borne back ceaselessly into the past.", 180));
+    books.at(1).add_quote(Quote("You never really understand a person until you consider things from his point of view.", 39));
+    books.at(2).add_quote(Quote("War is peace. Freedom is slavery. Ignorance is strength.", 3));
+    books.at(3).add_quote(Quote("It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.", 1));
+    books.at(4).add_quote(Quote("The mark of the immature man is that he wants to die nobly for a cause, while the mark of the mature man is that he wants to live humbly for one.", 188));
+    books.at(5).add_quote(Quote("All animals are equal, but some animals are more equal than others.", 112));
+    books.at(6).add_quote(Quote("The thing is - fear can't hurt you any more than a dream.", 82));
 };
 
 void write_db() {
