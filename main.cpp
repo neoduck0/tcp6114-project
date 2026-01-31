@@ -552,16 +552,16 @@ void ui_add_book() {
     uih_clear();
     uih_header();
 
-    cout << "title: ";
+    cout << "title> ";
     getline(cin, title);
 
-    cout << "author: ";
+    cout << "author> ";
     getline(cin, author);
 
-    cout << "release date (yyyy-mm-dd): ";
+    cout << "release date (yyyy-mm-dd)> ";
     getline(cin, release_date);
 
-    cout << "pages: ";
+    cout << "pages> ";
     cin >> pages;
     if (h_clean_buf()) {
         pages = -1;
@@ -589,16 +589,16 @@ void ui_edit_book(Book& book) {
     uih_header();
     
     cout << "Press enter to skip.\nEnter 0 for pages to skip.\n\n";
-    cout << "title (" + book.get_title() + "): ";
+    cout << "title (" + book.get_title() + ")> ";
     getline(cin, title);
 
-    cout << "author (" + book.get_author() + "): ";
+    cout << "author (" + book.get_author() + ")> ";
     getline(cin, author);
 
-    cout << "release date (" + book.get_date() + "): ";
+    cout << "release date (" + book.get_date() + ")> ";
     getline(cin, release_date);
 
-    cout << "pages (" + to_string(book.get_pages()) + "): ";
+    cout << "pages (" + to_string(book.get_pages()) + ")> ";
     cin >> pages;
     if (h_clean_buf()) {
         pages = -1;
@@ -778,7 +778,7 @@ void ui_add_log(Book& book) {
     uih_clear();
     uih_header();
 
-    cout << "pages: ";
+    cout << "pages> ";
     cin >> pages;
     if (h_clean_buf() || pages <= 0) {
         alert = "invalid pages";
@@ -786,7 +786,7 @@ void ui_add_log(Book& book) {
     }
 
     cout << "(leave time empty for current time)\n";
-    cout << "time: ";
+    cout << "time> ";
     getline(cin, time);
     if (time.length() == 0) {
         time = Date().get_str(true);
@@ -887,14 +887,14 @@ void ui_add_quote(Book& book) {
     uih_clear();
     uih_header();
 
-    cout << "page: ";
+    cout << "page> ";
     cin >> page;
     if (h_clean_buf() || page <= 0 || page > total_pages) {
         alert = "invalid page";
         return;
     }
 
-    cout << "quote: ";
+    cout << "quote> ";
     getline(cin, content);
     if (content.length() == 0) {
         alert = "invalid quote";
