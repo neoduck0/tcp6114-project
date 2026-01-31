@@ -314,7 +314,7 @@ int h_find_book(string book_id);
 int const MAX_LIST_ITEMS = 3;
 string const CONNECTOR = "\n|\n|\n";
 string const BOOK_FILE = "books.txt";
-string const LOG_FILE = "logs.txt";
+string const LOG_FILE = "sessions.txt";
 string const QUOTE_FILE = "quotes.txt";
 
 // GLOBAL VARIABLES
