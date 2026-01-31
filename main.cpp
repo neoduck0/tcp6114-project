@@ -17,10 +17,13 @@
 using namespace std;
 
 // CLASSES
+
+// handles date and time operations with formatting
 class Date {
     private:
         string year, month, day, hour, minute, second;
     public:
+        // creates date object with current system time
         Date() {
             string year, month, day, hour, minute, second;
 
@@ -67,6 +70,7 @@ class Date {
             this->second = second;
         }
 
+        // parses date from formatted string
         Date(string str_date) {
             this->year = str_date.substr(0, 4);
             this->month = str_date.substr(5, 2);
@@ -83,6 +87,7 @@ class Date {
             }
         }
 
+        // returns formatted date string
         string get_str(bool incl_time) {
             string str_date = this->year + "-"
                 + this->month + "-"
@@ -98,74 +103,98 @@ class Date {
             }
         }
 
+        // returns numeric representation for sorting and comparison
         long get_comparable() {
             return stol(this->year + this->month + this->day
                     + this->hour + this->minute + this->second);
         }
 };
 
+// stores quotes from books with page references
 class Quote {
     private:
         string content;
         int page;
         string* book_title; 
     public:
+        // initializes quote with text content and page number
         Quote(string content, int page) {
             this->content = content;
             this->page = page;
         }
+        
+        // returns full formatted quote with book title and page
         string get_str() {
             return *this->book_title +
                 " [page " + to_string(this->page) + "]\n" + this->content;
         }
+        
+        // returns compact format for list display
         string get_line_str() {
             return "[page " + to_string(this->page) + "] " + this->content;
         }
+        
         int get_page() {
             return this->page;
         }
         string get_content() {
             return this->content;
         }
+        
+        // returns page number for sorting quotes chronologically
         int get_comparable() {
             return this->page;
         }
+        
+        // sets pointer to parent book title for display purposes
         void set_book_title(string* book_title) {
             this->book_title = book_title;
         }
-};
+    };
 
+// tracks individual reading sessions with page count and timestamp
 class Log {
     private:
         int pages;
         Date time;
         string* book_title;
     public:
+        // creates reading session entry with pages read and time
         Log(int pages, string time) {
             this->pages = pages;
             this->time = Date(time);
         }
+        
         int get_pages() {
             return this->pages;
         }
         string get_date() {
             return this->time.get_str(true);
         }
+        
+        // returns full formatted session info with book title
         string get_str() {
             return *this->book_title + "\n" + to_string(this->pages)
                 + " pages [" + this->time.get_str(true) + "]";
         }
+        
+        // returns compact format for list display
         string get_line_str() {
             return to_string(this->pages) + " pages [" + this->time.get_str(true) + "]";
         }
+        
+        // returns time for chronological sorting
         int get_comparable() {
             return this->time.get_comparable();
         }
+        
+        // sets pointer to parent book title
         void set_book_title(string* book_title) {
             this->book_title = book_title;
         }
-};
+    };
 
+// main book entity managing book information, reading progress, and quotes
 class Book {
     private:
         string title, author;
@@ -174,18 +203,21 @@ class Book {
         vector<Quote> quotes;
         vector<Log> logs;
 
+        // sorts reading logs by most recent first
         void sort_logs() {
             sort(this->logs.begin(), this->logs.end(), [](Log& a, Log& b) {
                 return a.get_comparable() > b.get_comparable();
             });
         }
 
+        // sorts quotes by page number for chronological reading
         void sort_quotes() {
             sort(this->quotes.begin(), this->quotes.end(), [](Quote& a, Quote& b) {
                 return a.get_page() < b.get_page();
             });
         }
 
+        // calculates total pages read across all sessions
         int get_pages_read() {
             int s = 0;
             for (Log l : this->logs) {
@@ -194,6 +226,7 @@ class Book {
             return s;
         }
     public:
+        // initializes book
         Book(string title, string author, string release_date, int pages) {
             this->title = title;
             this->author = author;
@@ -201,6 +234,7 @@ class Book {
             this->pages = pages;
         }
 
+        // adds reading session if within book page limits
         bool add_log(Log log) {
             if (log.get_pages() + this->get_pages_read() > this->pages) {
                 return false;
@@ -211,6 +245,7 @@ class Book {
             return true;
         }
 
+        // adds quote if page number is valid for this book
         bool add_quote(Quote quote) {
             if (quote.get_page() <= 0 || quote.get_page() > this->pages) {
                 return false;
@@ -221,10 +256,12 @@ class Book {
             return true;
         }
 
+        // returns compact format for book lists
         string get_line_str() {
             return this->title + ", " + author ;
         }
 
+        // returns detailed book information with stats
         string get_str() {
             return "Title: " + this->title + "\n"
                 + "Author: " + this->author + "\n"
@@ -279,14 +316,16 @@ class Book {
             this->pages = pages;
         }
 
+        // removes reading session by index
         void delete_log(int index) {
             this->logs.erase(this->logs.begin() + index);
         }
 
+        // removes quote by index
         void delete_quote(int index) {
             this->quotes.erase(this->quotes.begin() + index);
         }
-};
+    };
 
 // FUNCTIONS
 void ui_home();
@@ -331,6 +370,7 @@ string const QUOTE_FILE = "quotes.txt";
 vector<Book> books;
 string alert = "";
 
+// loads database on startup and runs main menu loop
 int main() {
     if (!load_db()) {
         cout << "files are corrupted, delete the existing files or fix them.\n";
@@ -339,6 +379,7 @@ int main() {
     while (true) {ui_home();}
 }
 
+// main menu interface
 void ui_home() {
     int option;
 
@@ -393,6 +434,7 @@ void ui_search_book() {
     ui_view_books(filtered_books);
 }
 
+// returns all books containing the search term case insensitive in their title
 vector<Book> search_book(string input) {
     for (char& c : input) { c = tolower(c); }
 
@@ -985,6 +1027,7 @@ void ui_delete_quote(Book& book) {
     }
 }
 
+// displays ascii art and alert
 void uih_header() {
     cout << "+============================+\n"
             "|       ______ ______        |\n"
@@ -1003,6 +1046,7 @@ void uih_header() {
     }
 }
 
+// clears terminal screen based on operating system
 void uih_clear() {
     #ifdef _WIN32
     system("cls");
@@ -1011,6 +1055,7 @@ void uih_clear() {
     #endif
 }
 
+// displays paged list by page number with optional numbering
 void uih_list(vector<string>& items, int set, bool numbered) {
     int c = MAX_LIST_ITEMS * set;
     for (int i = c; i < c + MAX_LIST_ITEMS; i++) {
@@ -1029,6 +1074,7 @@ void uih_list(vector<string>& items, int set, bool numbered) {
     }
 }
 
+// clears input buffer and detects input failures
 bool h_clean_buf() {
     bool return_value = false;
 
@@ -1041,6 +1087,7 @@ bool h_clean_buf() {
     return return_value;
 }
 
+// validates date format
 bool h_valid_date(string date) {
     if (date.length() < 10) {
         return false;
@@ -1112,6 +1159,8 @@ bool h_valid_date(string date) {
     return true;
 }
 
+// finds book index by id
+// returns -1 if book not found
 int h_find_book(string book_id) {
     for (int i = 0; i < books.size(); i++) {
         if (book_id == books.at(i).get_id()) {
@@ -1121,6 +1170,8 @@ int h_find_book(string book_id) {
     return -1;
 }
 
+// loads all data files on application startup
+// returns false if any file is corrupted or missing
 bool load_db() {
     if (!h_load_books() || !h_load_logs() || !h_load_quotes()) {
         return false;
@@ -1128,6 +1179,8 @@ bool load_db() {
     return true;
 }
 
+// loads books from text file with validation
+// creates empty file if none exists
 bool h_load_books() {
     string title, author, date, str_pages;
 
@@ -1174,6 +1227,7 @@ bool h_load_books() {
     return true;
 }
 
+// loads reading sessions and adds them to corresponding books
 bool h_load_logs() {
     ifstream l_check(LOG_FILE);
     if (!l_check.good()) {
@@ -1223,6 +1277,7 @@ bool h_load_logs() {
     return true;
 }
 
+// loads quotes and adds them to corresponding books
 bool h_load_quotes() {
     ifstream q_check(QUOTE_FILE);
     if (!q_check.good()) {
@@ -1278,6 +1333,7 @@ bool h_load_quotes() {
     return true;
 }
 
+// saves all data to text files on application exit
 void write_db() {
     ofstream books_file(BOOK_FILE);
     ofstream logs_file(LOG_FILE);
