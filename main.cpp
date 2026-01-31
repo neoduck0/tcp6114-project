@@ -133,8 +133,8 @@ class Log {
             return this->pages;
         }
         string get_str() {
-            return + "[" + to_string(this->pages)
-                + "] (" + this->time.get_str(true) + ")";
+            return + "" + to_string(this->pages)
+                + " pages [" + this->time.get_str(true) + "]";
         };
         int get_comparable() {
             return this->time.get_comparable();
@@ -150,13 +150,13 @@ class Book {
         vector<Log> logs;
 
         void sort_logs() {
-            sort(logs.begin(), logs.end(), [](Log& a, Log& b) {
+            sort(this->logs.begin(), this->logs.end(), [](Log& a, Log& b) {
                 return a.get_comparable() < b.get_comparable();
             });
         }
 
         void sort_quotes() {
-            sort(quotes.begin(), quotes.end(), [](Quote& a, Quote& b) {
+            sort(this->quotes.begin(), this->quotes.end(), [](Quote& a, Quote& b) {
                 return a.get_page() < b.get_page();
             });
         }
@@ -269,10 +269,11 @@ void ui_delete_quote(Book& book);
 
 void uih_clear();
 void uih_header();
-void uih_list(vector<string>& items, string connect, int set);
+void uih_list(vector<string>& items, int set, bool numbered);
 
 vector<Book> search_book(string book_title);
 void delete_book(string book_id);
+vector<string> get_all_logs();
 void load_db();
 void write_db();
 
@@ -282,7 +283,6 @@ int h_find_book(string book_id);
 
 // GLOBAL CONSTANTS
 string const CONNECTOR = "\n|\n|\n";
-string const ARROW = "\n|\nv\n";
 string const BOOK_FILE = "books.txt";
 string const LOG_FILE = "logs.txt";
 string const QUOTE_FILE = "quotes.txt";
@@ -385,7 +385,7 @@ void ui_view_books(vector<Book> filtered_books) {
         uih_clear();
         uih_header();
 
-        uih_list(str_books, CONNECTOR, cur_set);
+        uih_list(str_books, cur_set, true);
         cout << "\n\n(p) previous (n) next (q) quit\n\n";
 
         cout << "option> ";
@@ -584,9 +584,70 @@ void ui_edit_book(Book& book) {
 };
 
 void ui_view_logs() {
-    uih_clear();
-    uih_header();
-    // TODO: implement
+    vector<string> str_logs = get_all_logs();
+    
+    if (str_logs.size() == 0) {
+        alert = "no sessions exist";
+        return;
+    }
+
+    int max_sets = ceil((float) str_logs.size() / 5);
+    int cur_set = 0;
+    char option;
+
+    while (true) {
+        uih_clear();
+        uih_header();
+
+        uih_list(str_logs, cur_set, false);
+        cout << "\n\n(p) previous (n) next (q) quit\n\n";
+
+        cout << "option> ";
+        cin >> option;
+        if (h_clean_buf()) { option = '/'; }
+
+        switch (option) {
+            case 'n':
+                if (cur_set < max_sets - 1) {
+                    cur_set++;
+                } else {
+                    alert = "no next page";
+                }
+                break;
+            case 'p':
+                if (cur_set > 0) {
+                    cur_set--;
+                } else {
+                    alert = "no previous page";
+                }
+                break;
+            case 'q':
+                return;
+            default:
+                alert = "unavailable option";
+        }
+    }
+}
+
+vector<string> get_all_logs() {
+    vector<Log> logs;
+    vector<string> str_logs;
+
+    for (Book& b: books) {
+        for (Log& l: b.get_logs()) {
+            logs.push_back(l);
+        }
+    }
+
+    sort(logs.begin(), logs.end(), [](Log& a, Log& b) {
+        return a.get_comparable() > b.get_comparable();
+    });
+
+    for (Log& l: logs) {
+        str_logs.push_back(l.get_str());
+    }
+
+    return str_logs;
 }
 
 void ui_view_quotes() {
@@ -688,15 +749,20 @@ void uih_clear() {
     #endif
 }
 
-void uih_list(vector<string>& items, string connect, int set) {
+void uih_list(vector<string>& items, int set, bool numbered) {
     int c = 5 * set;
     for (int i = c; i < c + 5; i++) {
         if (i < items.size()) {
             if (!(i % 5 == 0)) {
-                cout << connect;
+                cout << CONNECTOR;
             };
-            cout << "(" << i + 1 << ") "
-                << items.at(i);
+            if (numbered) {
+                cout << "(" << i + 1 << ") "
+                    << items.at(i);
+            } else {
+                cout << "* "
+                    << items.at(i);
+            }
         }
     }
 }
@@ -812,6 +878,18 @@ void load_db() {
     books.push_back(Book("The Brothers Karamazov", "Fyodor Dostoevsky", "1880-11-01", 824));
     books.push_back(Book("War and Peace", "Leo Tolstoy", "1869-01-01", 1225));
     books.push_back(Book("Anna Karenina", "Leo Tolstoy", "1877-01-01", 864));
+
+    books.at(0).add_log(Log(20, Date().get_str(true)));
+    sleep(1);
+    books.at(1).add_log(Log(10, Date().get_str(true)));
+    sleep(1);
+    books.at(0).add_log(Log(5, Date().get_str(true)));
+    sleep(1);
+    books.at(2).add_log(Log(7, Date().get_str(true)));
+    sleep(1);
+    books.at(0).add_log(Log(3, Date().get_str(true)));
+    sleep(1);
+    books.at(0).add_log(Log(6, Date().get_str(true)));
 };
 
 void write_db() {
