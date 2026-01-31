@@ -123,12 +123,8 @@ class Quote {
 class Log {
     private:
         int pages;
-    public:
         Date time;
-        Log(int pages) {
-            this->pages = pages;
-        };
-
+    public:
         Log(int pages, string time) {
             this->pages = pages;
             this->time = Date(time);
@@ -140,6 +136,9 @@ class Log {
             return + "[" + to_string(this->pages)
                 + "] (" + this->time.get_str(true) + ")";
         };
+        int get_comparable() {
+            return this->time.get_comparable();
+        }
 };
 
 class Book {
@@ -152,7 +151,7 @@ class Book {
 
         void sort_logs() {
             sort(logs.begin(), logs.end(), [](Log& a, Log& b) {
-                return a.time.get_comparable() < b.time.get_comparable();
+                return a.get_comparable() < b.get_comparable();
             });
         }
 
@@ -176,6 +175,24 @@ class Book {
             this->release_date = Date(release_date);
             this->pages = pages;
         };
+
+        bool add_log(Log log) {
+            if (log.get_pages() + this->get_pages_read() > this->pages) {
+                return false;
+            }
+            logs.push_back(log);
+            this->sort_logs();
+            return true;
+        }
+
+        bool add_quote(Quote quote) {
+            if (quote.get_page() <= 0 || quote.get_page() > this->pages) {
+                return false;
+            }
+            quotes.push_back(quote);
+            this->sort_quotes();
+            return true;
+        }
 
         string get_line_str() {
             return this->title + ", " + author ;
@@ -240,15 +257,15 @@ class Book {
 void ui_home();
 void ui_search_book();
 void ui_view_books(vector<Book> filtered_books);
-void ui_view_book(Book book);
+void ui_view_book(Book& book);
 void ui_add_book();
 void ui_view_logs();
 void ui_view_quotes();
 void ui_edit_book(string book_id);
-void ui_add_log(string book_id);
-void ui_delete_log();
-void ui_add_quote();
-void ui_delete_quote();
+void ui_add_log(Book& book);
+void ui_delete_log(string book_id);
+void ui_add_quote(Book& book);
+void ui_delete_quote(string book_id);
 
 void uih_clear();
 void uih_header();
@@ -358,6 +375,7 @@ void ui_view_books(vector<Book> filtered_books) {
     string option;
     int cur_set = 0;
     int max_sets = ceil((float) filtered_books.size() / 5);
+    string book_id;
 
     vector<string> str_books;
     for (Book book : filtered_books) {
@@ -408,57 +426,58 @@ void ui_view_books(vector<Book> filtered_books) {
                 alert = "invalid option";
                 return;
             }
-
-            ui_view_book(filtered_books.at(int_option - 1));
+            book_id = filtered_books.at(int_option - 1).get_id();
+            ui_view_book(books.at(h_find_book(book_id)));
             return;
         }
     }
 }
 
-void ui_view_book(Book book) {
+void ui_view_book(Book &book) {
     int option;
 
-    uih_clear();
-    uih_header();
+    while (true) {
+        uih_clear();
+        uih_header();
 
-    cout << book.get_str() << endl;
+        cout << book.get_str() << endl;
 
-    cout << "(1) edit book\n"
-            "(2) add session\n"
-            "(3) delete session\n"
-            "(4) add quote\n"
-            "(5) delete quote\n"
-            "(6) delete book\n"
-            "(7) exit\n\n";
+        cout << "(1) edit book\n"
+                "(2) add session\n"
+                "(3) delete session\n"
+                "(4) add quote\n"
+                "(5) delete quote\n"
+                "(6) delete book\n"
+                "(7) exit\n\n";
 
-    cout << "option> ";
-    cin >> option;
-    if (h_clean_buf()) { option = -1; }
+        cout << "option> ";
+        cin >> option;
+        if (h_clean_buf()) { option = -1; }
 
-    switch (option) {
-        case 1:
-            ui_edit_book(book.get_id());
-            break;
-        case 2:
-            ui_add_log(book.get_id());
-            break;
-        case 3:
-            ui_delete_log();
-            break;
-        case 4:
-            ui_add_quote();
-            break;
-        case 5:
-            ui_delete_quote();
-            break;
-        case 6:
-            delete_book(book.get_id());
-            break;
-        case 7:
-            return;
-        default:
-            alert = "unavailable option";
-            return;
+        switch (option) {
+            case 1:
+                ui_edit_book(book.get_id());
+                break;
+            case 2:
+                ui_add_log(book);
+                break;
+            case 3:
+                ui_delete_log(book.get_id());
+                break;
+            case 4:
+                ui_add_quote(book);
+                break;
+            case 5:
+                ui_delete_quote(book.get_id());
+                break;
+            case 6:
+                delete_book(book.get_id());
+                break;
+            case 7:
+                return;
+            default:
+                alert = "unavailable option";
+        }
     }
 }
 
@@ -495,7 +514,7 @@ void ui_add_book() {
     }
 
     if (!(title.length() > 0) || !(author.length() > 0) || !(pages > 0) || !h_valid_date(release_date)) {
-        alert = "bad information input";
+        alert = "ensure the data is valid";
         return;
     }
 
@@ -555,7 +574,7 @@ void ui_edit_book(string book_id) {
     }
 
     if (!h_valid_date(release_date)) {
-        alert = "bad information input";
+        alert = "the date is not valid";
         return;
     }
     
@@ -567,26 +586,82 @@ void ui_edit_book(string book_id) {
 };
 
 void ui_view_logs() {
+    uih_clear();
+    uih_header();
     // TODO: implement
 }
 
 void ui_view_quotes() {
+    uih_clear();
+    uih_header();
     // TODO: implement
 };
 
-void ui_add_log(string book_id) {
+void ui_add_log(Book& book) {
+    int pages;
+    string time;
+
+    uih_clear();
+    uih_header();
+
+    cout << "pages: ";
+    cin >> pages;
+    if (h_clean_buf() || pages <= 0) {
+        alert = "ensure the page are positive";
+        return;
+    }
+
+    cout << "(leave time empty for current time else yyyy-mm-dd hh:mm:ss)\n";
+    cout << "time: ";
+    getline(cin, time);
+    if (time.length() == 0) {
+        time = Date().get_str(true);
+    } else if (!h_valid_date(time)) {
+        alert = "ensure the date is valid";
+        return;
+    }
+    
+    if (!book.add_log(Log(pages, time))) {
+        alert = "pages are greater than the pages left in the book";
+    };
+};
+
+void ui_delete_log(string book_id) {
+    uih_clear();
+    uih_header();
     // TODO: implement
 };
 
-void ui_delete_log() {
-    // TODO: implement
+void ui_add_quote(Book& book) {
+    string content;
+    int page;
+    int total_pages = book.get_pages();
+
+    uih_clear();
+    uih_header();
+
+    cout << "page: ";
+    cin >> page;
+    if (h_clean_buf() || page <= 0 || page > total_pages) {
+        alert = "ensure the page is within range";
+        return;
+    }
+
+    cout << "quote: ";
+    getline(cin, content);
+    if (content.length() == 0) {
+        alert = "quote cannot be empty";
+        return;
+    }
+
+    if (!book.add_quote(Quote(content, page))) {
+        alert = "page is out of range";
+    };
 };
 
-void ui_add_quote() {
-    // TODO: implement
-};
-
-void ui_delete_quote() {
+void ui_delete_quote(string book_id) {
+    uih_clear();
+    uih_header();
     // TODO: implement
 };
 
