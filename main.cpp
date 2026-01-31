@@ -117,6 +117,9 @@ class Quote {
             return *this->book_title +
                 " [page " + to_string(this->page) + "]\n" + this->content;
         };
+        string get_line_str() {
+            return "[page " + to_string(this->page) + "] " + this->content;
+        };
         int get_page() {
             return this->page;
         }
@@ -144,6 +147,9 @@ class Log {
         string get_str() {
             return *this->book_title + "\n" + to_string(this->pages)
                 + " pages [" + this->time.get_str(true) + "]";
+        };
+        string get_line_str() {
+            return to_string(this->pages) + "pages [" + this->time.get_str(true) + "]";
         };
         int get_comparable() {
             return this->time.get_comparable();
