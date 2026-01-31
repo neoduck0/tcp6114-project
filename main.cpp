@@ -149,7 +149,7 @@ class Log {
                 + " pages [" + this->time.get_str(true) + "]";
         };
         string get_line_str() {
-            return to_string(this->pages) + "pages [" + this->time.get_str(true) + "]";
+            return to_string(this->pages) + " pages [" + this->time.get_str(true) + "]";
         };
         int get_comparable() {
             return this->time.get_comparable();
@@ -169,7 +169,7 @@ class Book {
 
         void sort_logs() {
             sort(this->logs.begin(), this->logs.end(), [](Log& a, Log& b) {
-                return a.get_comparable() < b.get_comparable();
+                return a.get_comparable() > b.get_comparable();
             });
         }
 
@@ -270,6 +270,14 @@ class Book {
 
         void set_pages(int pages) {
             this->pages = pages;
+        }
+
+        void delete_log(int index) {
+            this->logs.erase(this->logs.begin() + index);
+        }
+
+        void delete_quote(int index) {
+            this->quotes.erase(this->quotes.begin() + index);
         }
 };
 
@@ -412,8 +420,7 @@ void ui_view_books(vector<Book> filtered_books) {
         cout << "\n\n(p) previous (n) next (q) quit\n\n";
 
         cout << "option> ";
-        cin >> option;
-        if (h_clean_buf()) { option = '/'; }
+        getline(cin, option);
 
         if (option == "n") {
             if (cur_set < max_sets - 1) {
@@ -431,6 +438,12 @@ void ui_view_books(vector<Book> filtered_books) {
             return;
         } else {
             bool is_digits = true;
+            
+            if (option.length() == 0) {
+                alert = "invalid option";
+                continue;
+            }
+
             for (char c: option) {
                 if (!isdigit(c)) {
                     is_digits = false;
@@ -440,14 +453,14 @@ void ui_view_books(vector<Book> filtered_books) {
 
             if (!is_digits) {
                 alert = "invalid option";
-                return;
+                continue;
             }
 
             int int_option = stoi(option);
 
             if (!(int_option > 0) || !(int_option <= filtered_books.size())) {
                 alert = "invalid option";
-                return;
+                continue;
             }
             book_id = filtered_books.at(int_option - 1).get_id();
             ui_view_book(books.at(h_find_book(book_id)));
@@ -772,7 +785,80 @@ void ui_add_log(Book& book) {
 void ui_delete_log(Book& book) {
     uih_clear();
     uih_header();
-    // TODO: implement
+
+    vector<string>str_logs;
+    for (Log l: book.get_logs()) {
+        str_logs.push_back(l.get_line_str());
+    }
+    
+    if (str_logs.size() == 0) {
+        alert = "no sessions exist";
+        return;
+    }
+
+    int max_sets = ceil((float) str_logs.size() / MAX_LIST_ITEMS);
+    int cur_set = 0;
+    string option;
+
+    while (true) {
+        uih_clear();
+        uih_header();
+
+        uih_list(str_logs, cur_set, true);
+        cout << "\n\n(p) previous (n) next (q) quit\n\n";
+
+        cout << "option> ";
+        getline(cin, option);
+
+        if (option == "n") {
+            if (cur_set < max_sets - 1) {
+                cur_set++;
+            } else {
+                alert = "no next page";
+            }
+        } 
+        else if (option == "p") {
+            if (cur_set > 0) {
+                cur_set--;
+            } else {
+                alert = "no previous page";
+            }
+        } 
+        else if (option == "q") {
+            return;
+        } 
+        else {
+            bool is_digits = true;
+            
+            if (option.length() == 0) {
+                alert = "invalid option";
+                continue;
+            }
+
+            for (char c: option) {
+                if (!isdigit(c)) {
+                    is_digits = false;
+                    break;
+                }
+            }
+
+            if (!is_digits) {
+                alert = "invalid option";
+                continue;
+            }
+
+            int int_option = stoi(option);
+
+            if (!(int_option > 0) || !(int_option <= str_logs.size())) {
+                alert = "invalid option";
+                continue;
+            }
+            
+            book.delete_log(int_option - 1);
+            alert = "deleted session";
+            return;
+        }
+    }
 };
 
 void ui_add_quote(Book& book) {
@@ -805,7 +891,80 @@ void ui_add_quote(Book& book) {
 void ui_delete_quote(Book& book) {
     uih_clear();
     uih_header();
-    // TODO: implement
+
+    vector<string>str_quotes;
+    for (Quote q: book.get_quotes()) {
+        str_quotes.push_back(q.get_line_str());
+    }
+    
+    if (str_quotes.size() == 0) {
+        alert = "no quotes exist";
+        return;
+    }
+
+    int max_sets = ceil((float) str_quotes.size() / MAX_LIST_ITEMS);
+    int cur_set = 0;
+    string option;
+
+    while (true) {
+        uih_clear();
+        uih_header();
+
+        uih_list(str_quotes, cur_set, true);
+        cout << "\n\n(p) previous (n) next (q) quit\n\n";
+
+        cout << "option> ";
+        getline(cin, option);
+
+        if (option == "n") {
+            if (cur_set < max_sets - 1) {
+                cur_set++;
+            } else {
+                alert = "no next page";
+            }
+        } 
+        else if (option == "p") {
+            if (cur_set > 0) {
+                cur_set--;
+            } else {
+                alert = "no previous page";
+            }
+        } 
+        else if (option == "q") {
+            return;
+        } 
+        else {
+            bool is_digits = true;
+            
+            if (option.length() == 0) {
+                alert = "invalid option";
+                continue;
+            }
+
+            for (char c: option) {
+                if (!isdigit(c)) {
+                    is_digits = false;
+                    break;
+                }
+            }
+
+            if (!is_digits) {
+                alert = "invalid option";
+                continue;
+            }
+
+            int int_option = stoi(option);
+
+            if (!(int_option > 0) || !(int_option <= str_quotes.size())) {
+                alert = "invalid option";
+                continue;
+            }
+            
+            book.delete_log(int_option - 1);
+            alert = "deleted session";
+            return;
+        }
+    }
 };
 
 void uih_header() {
